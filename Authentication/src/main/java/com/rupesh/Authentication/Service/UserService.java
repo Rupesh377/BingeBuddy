@@ -1,12 +1,11 @@
 package com.rupesh.Authentication.Service;
 
-import com.rupesh.Authentication.DTOs.LoginRequestDTO;
-import com.rupesh.Authentication.DTOs.LoginResponseDTO;
-import com.rupesh.Authentication.DTOs.RegisterRequestDTO;
+import com.rupesh.Authentication.DTOs.*;
 import com.rupesh.Authentication.Entity.User;
 import com.rupesh.Authentication.Enum.AuthProvider;
 import com.rupesh.Authentication.Enum.Role;
 import com.rupesh.Authentication.Repository.UserRepository;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -65,5 +64,12 @@ public class UserService {
         String refreshToken= jwtService.generateRefreshToken(user);
 
         return new LoginResponseDTO( user.getEmail(), accessToken , refreshToken);
+    }
+
+    public @Nullable AuthResponseDTO refreshToken(RefreshTokenRequest refreshTokenRequest) {
+    }
+
+    public void logout(User user) {
+
     }
 }
