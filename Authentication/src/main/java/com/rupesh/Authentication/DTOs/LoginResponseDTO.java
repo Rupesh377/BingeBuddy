@@ -11,7 +11,6 @@ import java.util.UUID;
 @NoArgsConstructor
 public class LoginResponseDTO {
 
-    private UUID id;
     private String name;
     private String accessToken;
     private String refreshToken;

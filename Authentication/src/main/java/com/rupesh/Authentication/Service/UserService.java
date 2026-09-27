@@ -1,14 +1,69 @@
 package com.rupesh.Authentication.Service;
 
+import com.rupesh.Authentication.DTOs.LoginRequestDTO;
+import com.rupesh.Authentication.DTOs.LoginResponseDTO;
+import com.rupesh.Authentication.DTOs.RegisterRequestDTO;
+import com.rupesh.Authentication.Entity.User;
+import com.rupesh.Authentication.Enum.AuthProvider;
+import com.rupesh.Authentication.Enum.Role;
 import com.rupesh.Authentication.Repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.net.URI;
+import java.time.LocalDateTime;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService service) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = service;
+    }
+
+
+    public String CreateAccount(RegisterRequestDTO registerRequestDTO) {
+
+        if(userRepository.existsByEmail(registerRequestDTO.getEmail())){
+           throw new RuntimeException("User Already Exists with this Email");
+        }
+        User user=User.builder()
+                .username(registerRequestDTO.getUsername())
+                .email(registerRequestDTO.getEmail())
+                .password(passwordEncoder.encode(registerRequestDTO.getPassword()))
+                .role(Role.USER)
+                .provider(AuthProvider.LOCAL)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        userRepository.save(user);
+
+        return "User Created Successfully";
+    }
+
+    public LoginResponseDTO UserLogin(LoginRequestDTO loginRequestDTO) {
+
+
+        User user=userRepository.findByEmail(loginRequestDTO.getEmail()).orElseThrow(
+                ()->new RuntimeException("Register your account first"));
+        if(user.getProvider()!= AuthProvider.LOCAL)
+        {
+            throw new RuntimeException("Login with: "+user.getProvider());
+        }
+
+        if(!passwordEncoder.encode(loginRequestDTO.getPassword()).equals(user.getPassword()))
+        {
+            throw new RuntimeException("Invalid Email or Password");
+        }
+        String accessToken=jwtService.generateAccessToken(user);
+        String refreshToken= jwtService.generateRefreshToken(user);
+
+        return new LoginResponseDTO( user.getEmail(), accessToken , refreshToken);
     }
 }
