@@ -20,7 +20,7 @@ public class  RefreshTokenService {
         this.jwtService = jwtService;
     }
 
-    @Value("${jwt.secret.refresh-token-expiration}")
+    @Value("${jwt.refresh-token-expiration}")
     private long refreshTokenExpiry;
 
     public RefreshToken CreateRefreshToken(User user)

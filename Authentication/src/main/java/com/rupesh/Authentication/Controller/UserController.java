@@ -4,6 +4,7 @@ import com.rupesh.Authentication.DTOs.*;
 import com.rupesh.Authentication.Security.CustomUserDetails;
 import com.rupesh.Authentication.Service.ForgetPasswordService;
 import com.rupesh.Authentication.Service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -11,15 +12,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/public/")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
     private final ForgetPasswordService forgetPasswordService;
 
-    public UserController(UserService service, ForgetPasswordService forgetPasswordService) {
-        this.userService = service;
-        this.forgetPasswordService = forgetPasswordService;
-    }
 
     @PostMapping("/create")
     public ResponseEntity<String> Register(@RequestBody RegisterRequestDTO registerRequestDTO)
