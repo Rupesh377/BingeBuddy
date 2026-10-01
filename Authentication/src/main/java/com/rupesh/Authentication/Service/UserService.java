@@ -1,9 +1,11 @@
 package com.rupesh.Authentication.Service;
 
 import com.rupesh.Authentication.DTOs.*;
+import com.rupesh.Authentication.Entity.RefreshToken;
 import com.rupesh.Authentication.Entity.User;
 import com.rupesh.Authentication.Enum.AuthProvider;
 import com.rupesh.Authentication.Enum.Role;
+import com.rupesh.Authentication.Repository.RefreshTokenRepository;
 import com.rupesh.Authentication.Repository.UserRepository;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,11 +21,17 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+    private final ForgetPasswordService forgetPasswordService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService service) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService service, RefreshTokenService refreshTokenService, ForgetPasswordService forgetPasswordService, RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = service;
+        this.refreshTokenService = refreshTokenService;
+        this.forgetPasswordService = forgetPasswordService;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
 
@@ -34,7 +42,7 @@ public class UserService {
         }
         User user=User.builder()
                 .username(registerRequestDTO.getUsername())
-                .email(registerRequestDTO.getEmail())
+                .email(registerRequestDTO.getEmail().toLowerCase())
                 .password(passwordEncoder.encode(registerRequestDTO.getPassword()))
                 .role(Role.USER)
                 .provider(AuthProvider.LOCAL)
@@ -48,8 +56,7 @@ public class UserService {
 
     public LoginResponseDTO UserLogin(LoginRequestDTO loginRequestDTO) {
 
-
-        User user=userRepository.findByEmail(loginRequestDTO.getEmail()).orElseThrow(
+        User user=userRepository.findByEmail(loginRequestDTO.getEmail().toLowerCase()).orElseThrow(
                 ()->new RuntimeException("Register your account first"));
         if(user.getProvider()!= AuthProvider.LOCAL)
         {
@@ -66,10 +73,24 @@ public class UserService {
         return new LoginResponseDTO( user.getEmail(), accessToken , refreshToken);
     }
 
-    public @Nullable AuthResponseDTO refreshToken(RefreshTokenRequest refreshTokenRequest) {
+    public AuthResponseDTO refreshToken(RefreshTokenRequest refreshTokenRequest) {
+
+        RefreshToken refreshToken=refreshTokenService.verifyRefreshToken(refreshTokenRequest.getRefreshToken());
+        User user=refreshToken.getUser();
+        String accesstoken= jwtService.generateAccessToken(user);
+        String refreshtoken=jwtService.generateRefreshToken(user);
+
+        return AuthResponseDTO.builder()
+                .accessToken(accesstoken)
+                .refreshToken(refreshtoken)
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
     }
 
     public void logout(User user) {
-
+        refreshTokenService.deleteRefreshToken(user);
     }
 }

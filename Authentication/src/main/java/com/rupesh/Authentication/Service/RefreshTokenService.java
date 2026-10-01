@@ -10,7 +10,7 @@ import java.lang.ref.Reference;
 import java.time.Instant;
 
 @Service
-public class RefreshTokenService {
+public class  RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
@@ -59,5 +59,9 @@ public class RefreshTokenService {
         refreshToken.setRevoked(true);
         refreshTokenRepository.save(refreshToken);
         return refreshToken;
+    }
+
+    public void deleteRefreshToken(User user) {
+        refreshTokenRepository.deleteByUser(user);
     }
 }
