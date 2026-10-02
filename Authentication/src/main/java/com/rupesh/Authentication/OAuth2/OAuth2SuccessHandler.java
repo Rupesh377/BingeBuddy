@@ -49,7 +49,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             getRedirectStrategy().sendRedirect(request, response, redirectUrl);
             return;
         }
-        String redirectUrl = "http://localhost:3000/oauth/success"
+        String redirectUrl = "http://localhost:5173/oauth/success"
                 + "?accessToken=" + authResponseDTO.getAccessToken()
                 + "&refreshToken=" + authResponseDTO.getRefreshToken();
 
